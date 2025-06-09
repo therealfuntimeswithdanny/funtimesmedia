@@ -19,6 +19,48 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        /* Custom modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 90%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased">
@@ -78,6 +120,42 @@
         </div>
     </main>
 
+    <!-- Icon Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Edit Icon Properties</h3>
+            <div class="flex flex-col items-center gap-4">
+                <div id="modalIconPreview" class="text-gray-800" style="font-size: 3em;"></div>
+                <div class="flex items-center space-x-4 w-full justify-center">
+                    <label for="iconSize" class="text-gray-700 font-medium">Size:</label>
+                    <select id="iconSize" class="p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="fa-xs">xs</option>
+                        <option value="fa-sm">sm</option>
+                        <option value="fa-lg">lg</option>
+                        <option value="fa-xl">xl</option>
+                        <option value="fa-2xl">2xl</option>
+                        <option value="fa-1x">1x</option>
+                        <option value="fa-2x">2x</option>
+                        <option value="fa-3x" selected>3x</option>
+                        <option value="fa-4x">4x</option>
+                        <option value="fa-5x">5x</option>
+                        <option value="fa-6x">6x</option>
+                        <option value="fa-7x">7x</option>
+                        <option value="fa-8x">8x</option>
+                        <option value="fa-9x">9x</option>
+                        <option value="fa-10x">10x</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-4 w-full justify-center">
+                    <label for="iconColor" class="text-gray-700 font-medium">Color:</label>
+                    <input type="color" id="iconColor" value="#4f46e5" class="p-1 border border-gray-300 rounded-md h-10 w-10 cursor-pointer">
+                </div>
+                <button id="copyEditedCodeBtn" class="bg-indigo-600 text-white px-5 py-2 rounded-md hover:bg-indigo-700 transition-colors duration-300 shadow-md">Copy Edited Code</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-gray-800 text-gray-300 py-8 px-6 md:px-12">
         <div class="max-w-7xl mx-auto text-center text-sm">
@@ -92,10 +170,19 @@
             const noResultsMessage = document.getElementById('noResultsMessage');
             const filterRadios = document.querySelectorAll('input[name="iconFilter"]');
 
+            const editModal = document.getElementById('editModal');
+            const closeModalBtn = editModal.querySelector('.close-button');
+            const modalIconPreview = document.getElementById('modalIconPreview');
+            const iconSizeSelect = document.getElementById('iconSize');
+            const iconColorInput = document.getElementById('iconColor');
+            const copyEditedCodeBtn = document.getElementById('copyEditedCodeBtn');
+
             let currentFilter = 'all'; // Default filter
+            let currentIcon = null; // Stores the original icon object being edited
 
             // Expanded list of Font Awesome icons with 'type' property
-            const allIcons = [
+            // Filtered for uniqueness and limited to 500
+            const rawIcons = [
                 { name: 'house', class: 'fa-solid fa-house', type: 'solid' },
                 { name: 'user', class: 'fa-solid fa-user', type: 'solid' },
                 { name: 'gear', class: 'fa-solid fa-gear', type: 'solid' },
@@ -215,22 +302,22 @@
                 { name: 'screwdriver', class: 'fa-solid fa-screwdriver', type: 'solid' },
                 { name: 'magnifying-glass-plus', class: 'fa-solid fa-magnifying-glass-plus', type: 'solid' },
                 { name: 'magnifying-glass-minus', class: 'fa-solid fa-magnifying-glass-minus', type: 'solid' },
-                { name: 'home-alt', class: 'fa-solid fa-home-alt', type: 'solid' }, // Alias, might not be in FA6
+                { name: 'home-alt', class: 'fa-solid fa-home-alt', type: 'solid' },
                 { name: 'address-book', class: 'fa-solid fa-address-book', type: 'solid' },
                 { name: 'address-card', class: 'fa-solid fa-address-card', type: 'solid' },
                 { name: 'id-card', class: 'fa-solid fa-id-card', type: 'solid' },
                 { name: 'envelope-open', class: 'fa-solid fa-envelope-open', type: 'solid' },
-                { name: 'phone-alt', class: 'fa-solid fa-phone-alt', type: 'solid' }, // Alias, might not be in FA6
-                { name: 'mobile-alt', class: 'fa-solid fa-mobile-alt', type: 'solid' }, // Alias, might not be in FA6
+                { name: 'phone-alt', class: 'fa-solid fa-phone-alt', type: 'solid' },
+                { name: 'mobile-alt', class: 'fa-solid fa-mobile-alt', type: 'solid' },
                 { name: 'desktop', class: 'fa-solid fa-desktop', type: 'solid' },
-                { name: 'tablet-alt', class: 'fa-solid fa-tablet-alt', type: 'solid' }, // Alias, might not be in FA6
+                { name: 'tablet-alt', class: 'fa-solid fa-tablet-alt', type: 'solid' },
                 { name: 'laptop', class: 'fa-solid fa-laptop', type: 'solid' },
                 { name: 'keyboard', class: 'fa-solid fa-keyboard', type: 'solid' },
                 { name: 'mouse', class: 'fa-solid fa-mouse', type: 'solid' },
                 { name: 'gamepad', class: 'fa-solid fa-gamepad', type: 'solid' },
                 { name: 'headset', class: 'fa-solid fa-headset', type: 'solid' },
                 { name: 'microphone', class: 'fa-solid fa-microphone', type: 'solid' },
-                { name: 'microphone-alt', class: 'fa-solid fa-microphone-alt', type: 'solid' }, // Alias, might not be in FA6
+                { name: 'microphone-alt', class: 'fa-solid fa-microphone-alt', type: 'solid' },
                 { name: 'volume-up', class: 'fa-solid fa-volume-up', type: 'solid' },
                 { name: 'volume-down', class: 'fa-solid fa-volume-down', type: 'solid' },
                 { name: 'volume-mute', class: 'fa-solid fa-volume-mute', type: 'solid' },
@@ -254,12 +341,12 @@
                 { name: 'fill-drip', class: 'fa-solid fa-fill-drip', type: 'solid' },
                 { name: 'stamp', class: 'fa-solid fa-stamp', type: 'solid' },
                 { name: 'compass', class: 'fa-solid fa-compass', type: 'solid' },
-                { name: 'map-marker-alt', class: 'fa-solid fa-map-marker-alt', type: 'solid' }, // Alias, might not be in FA6
+                { name: 'map-marker-alt', class: 'fa-solid fa-map-marker-alt', type: 'solid' },
                 { name: 'map-pin', class: 'fa-solid fa-map-pin', type: 'solid' },
                 { name: 'directions', class: 'fa-solid fa-directions', type: 'solid' },
                 { name: 'road', class: 'fa-solid fa-road', type: 'solid' },
                 { name: 'route', class: 'fa-solid fa-route', type: 'solid' },
-                { name: 'bus-alt', class: 'fa-solid fa-bus-alt', type: 'solid' }, // Alias, might not be in FA6
+                { name: 'bus-alt', class: 'fa-solid fa-bus-alt', type: 'solid' },
                 { name: 'taxi', class: 'fa-solid fa-taxi', type: 'solid' },
                 { name: 'shuttle-van', class: 'fa-solid fa-shuttle-van', type: 'solid' },
                 { name: 'gas-pump', class: 'fa-solid fa-gas-pump', type: 'solid' },
@@ -273,7 +360,7 @@
                 { name: 'cloud-moon', class: 'fa-solid fa-cloud-moon', type: 'solid' },
                 { name: 'snowflake', class: 'fa-solid fa-snowflake', type: 'solid' },
                 { name: 'fire', class: 'fa-solid fa-fire', type: 'solid' },
-                { name: 'fist-raised', class: 'fa-solid fa-fist-raised', type: 'solid' }, // Alias, might not be in FA6
+                { name: 'fist-raised', class: 'fa-solid fa-fist-raised', type: 'solid' },
                 { name: 'hand-sparkles', class: 'fa-solid fa-hand-sparkles', type: 'solid' },
                 { name: 'heartbeat', class: 'fa-solid fa-heartbeat', type: 'solid' },
                 { name: 'stethoscope', class: 'fa-solid fa-stethoscope', type: 'solid' },
@@ -345,7 +432,7 @@
                 { name: 'ubuntu', class: 'fa-brands fa-ubuntu', type: 'brand' },
                 { name: 'linux', class: 'fa-brands fa-linux', type: 'brand' },
                 { name: 'android', class: 'fa-brands fa-android', type: 'brand' },
-                { name: 'apple-ios', class: 'fa-brands fa-apple-pay', type: 'brand' }, // Reusing apple-pay as apple-ios is not directly in FA for regular use
+                { name: 'apple-ios', class: 'fa-brands fa-apple-pay', type: 'brand' },
                 { name: 'safari', class: 'fa-brands fa-safari', type: 'brand' },
                 { name: 'chrome', class: 'fa-brands fa-chrome', type: 'brand' },
                 { name: 'firefox', class: 'fa-brands fa-firefox', type: 'brand' },
@@ -480,15 +567,15 @@
                 { name: 'angles-down', class: 'fa-solid fa-angles-down', type: 'solid' },
                 { name: 'plus', class: 'fa-solid fa-plus', type: 'solid' },
                 { name: 'minus', class: 'fa-solid fa-minus', type: 'solid' },
-                { name: 'times', class: 'fa-solid fa-times', type: 'solid' }, // Alias for xmark
+                { name: 'times', class: 'fa-solid fa-times', type: 'solid' },
                 { name: 'divide', class: 'fa-solid fa-divide', type: 'solid' },
                 { name: 'equals', class: 'fa-solid fa-equals', type: 'solid' },
                 { name: 'hashtag', class: 'fa-solid fa-hashtag', type: 'solid' },
                 { name: 'at', class: 'fa-solid fa-at', type: 'solid' },
-                { name: 'dollar-sign-alt', class: 'fa-solid fa-dollar-sign-alt', type: 'solid' }, // Alias
-                { name: 'yen-sign-alt', class: 'fa-solid fa-yen-sign-alt', type: 'solid' }, // Alias
-                { name: 'euro-sign-alt', class: 'fa-solid fa-euro-sign-alt', type: 'solid' }, // Alias
-                { name: 'pound-sign-alt', class: 'fa-solid fa-pound-sign-alt', type: 'solid' }, // Alias
+                { name: 'dollar-sign-alt', class: 'fa-solid fa-dollar-sign-alt', type: 'solid' },
+                { name: 'yen-sign-alt', class: 'fa-solid fa-yen-sign-alt', type: 'solid' },
+                { name: 'euro-sign-alt', class: 'fa-solid fa-euro-sign-alt', type: 'solid' },
+                { name: 'pound-sign-alt', class: 'fa-solid fa-pound-sign-alt', type: 'solid' },
                 { name: 'won-sign', class: 'fa-solid fa-won-sign', type: 'solid' },
                 { name: 'lira-sign', class: 'fa-solid fa-lira-sign', type: 'solid' },
                 { name: 'ruble-sign', class: 'fa-solid fa-ruble-sign', type: 'solid' },
@@ -511,12 +598,6 @@
                 { name: 'font', class: 'fa-solid fa-font', type: 'solid' },
                 { name: 'heading', class: 'fa-solid fa-heading', type: 'solid' },
                 { name: 'paragraph', class: 'fa-solid fa-paragraph', type: 'solid' },
-                { name: 'quote-left', class: 'fa-solid fa-quote-left', type: 'solid' }, // Duplicate, keeping for context
-                { name: 'quote-right', class: 'fa-solid fa-quote-right', type: 'solid' }, // Duplicate, keeping for context
-                { name: 'link', class: 'fa-solid fa-link', type: 'solid' }, // Duplicate, keeping for context
-                { name: 'unlink', class: 'fa-solid fa-unlink', type: 'solid' }, // Duplicate, keeping for context
-                { name: 'paperclip', class: 'fa-solid fa-paperclip', type: 'solid' }, // Duplicate, keeping for context
-                { name: 'file-alt', class: 'fa-solid fa-file-alt', type: 'solid' }, // Duplicate, keeping for context
                 { name: 'file-csv', class: 'fa-solid fa-file-csv', type: 'solid' },
                 { name: 'file-excel', class: 'fa-solid fa-file-excel', type: 'solid' },
                 { name: 'file-image', class: 'fa-solid fa-file-image', type: 'solid' },
@@ -527,16 +608,15 @@
                 { name: 'file-audio', class: 'fa-solid fa-file-audio', type: 'solid' },
                 { name: 'file-video', class: 'fa-solid fa-file-video', type: 'solid' },
                 { name: 'file-archive', class: 'fa-solid fa-file-archive', type: 'solid' },
-                { name: 'file-alt', class: 'fa-solid fa-file-alt', type: 'solid' }, // Duplicate
                 { name: 'calculator', class: 'fa-solid fa-calculator', type: 'solid' },
                 { name: 'brush', class: 'fa-solid fa-brush', type: 'solid' },
                 { name: 'ruler', class: 'fa-solid fa-ruler', type: 'solid' },
                 { name: 'pencil-ruler', class: 'fa-solid fa-pencil-ruler', type: 'solid' },
                 { name: 'crop', class: 'fa-solid fa-crop', type: 'solid' },
-                { name: 'crop-alt', class: 'fa-solid fa-crop-alt', type: 'solid' }, // Alias
-                { name: 'sliders-h', class: 'fa-solid fa-sliders-h', type: 'solid' }, // Alias
+                { name: 'crop-alt', class: 'fa-solid fa-crop-alt', type: 'solid' },
+                { name: 'sliders-h', class: 'fa-solid fa-sliders-h', type: 'solid' },
                 { name: 'filter', class: 'fa-solid fa-filter', type: 'solid' },
-                { name: 'trash-alt', class: 'fa-solid fa-trash-alt', type: 'solid' }, // Alias
+                { name: 'trash-alt', class: 'fa-solid fa-trash-alt', type: 'solid' },
                 { name: 'redo', class: 'fa-solid fa-redo', type: 'solid' },
                 { name: 'undo', class: 'fa-solid fa-undo', type: 'solid' },
                 { name: 'history', class: 'fa-solid fa-history', type: 'solid' },
@@ -546,27 +626,25 @@
                 { name: 'toggle-off', class: 'fa-solid fa-toggle-off', type: 'solid' },
                 { name: 'qrcode', class: 'fa-solid fa-qrcode', type: 'solid' },
                 { name: 'barcode', class: 'fa-solid fa-barcode', type: 'solid' },
-                { name: 'tags', class: 'fa-solid fa-tags', type: 'solid' }, // Duplicate
                 { name: 'id-badge', class: 'fa-solid fa-id-badge', type: 'solid' },
-                { name: 'credit-card-alt', class: 'fa-solid fa-credit-card-alt', type: 'solid' }, // Alias
+                { name: 'credit-card-alt', class: 'fa-solid fa-credit-card-alt', type: 'solid' },
                 { name: 'receipt', class: 'fa-solid fa-receipt', type: 'solid' },
                 { name: 'hand-holding-dollar', class: 'fa-solid fa-hand-holding-dollar', type: 'solid' },
                 { name: 'piggy-bank', class: 'fa-solid fa-piggy-bank', type: 'solid' },
                 { name: 'chart-bar', class: 'fa-solid fa-chart-bar', type: 'solid' },
                 { name: 'chart-area', class: 'fa-solid fa-chart-area', type: 'solid' },
                 { name: 'table', class: 'fa-solid fa-table', type: 'solid' },
-                { name: 'th', class: 'fa-solid fa-th', type: 'solid' }, // Table cells
-                { name: 'th-list', class: 'fa-solid fa-th-list', type: 'solid' }, // Table with list
-                { name: 'th-large', class: 'fa-solid fa-th-large', type: 'solid' }, // Table large
+                { name: 'th', class: 'fa-solid fa-th', type: 'solid' },
+                { name: 'th-list', class: 'fa-solid fa-th-list', type: 'solid' },
+                { name: 'th-large', class: 'fa-solid fa-th-large', type: 'solid' },
                 { name: 'columns', class: 'fa-solid fa-columns', type: 'solid' },
                 { name: 'tasks', class: 'fa-solid fa-tasks', type: 'solid' },
                 { name: 'clipboard-list', class: 'fa-solid fa-clipboard-list', type: 'solid' },
                 { name: 'check-double', class: 'fa-solid fa-check-double', type: 'solid' },
                 { name: 'clipboard-check', class: 'fa-solid fa-clipboard-check', type: 'solid' },
-                { name: 'gavel', class: 'fa-solid fa-gavel', type: 'solid' }, // Duplicate
-                { name: 'balance-scale', class: 'fa-solid fa-balance-scale', type: 'solid' }, // Alias for scale-balanced
-                { name: 'handshake-alt', class: 'fa-solid fa-handshake-alt', type: 'solid' }, // Alias
-                { name: 'user-alt', class: 'fa-solid fa-user-alt', type: 'solid' }, // Alias
+                { name: 'balance-scale', class: 'fa-solid fa-balance-scale', type: 'solid' },
+                { name: 'handshake-alt', class: 'fa-solid fa-handshake-alt', type: 'solid' },
+                { name: 'user-alt', class: 'fa-solid fa-user-alt', type: 'solid' },
                 { name: 'user-circle', class: 'fa-solid fa-user-circle', type: 'solid' },
                 { name: 'user-plus', class: 'fa-solid fa-user-plus', type: 'solid' },
                 { name: 'user-minus', class: 'fa-solid fa-user-minus', type: 'solid' },
@@ -586,17 +664,15 @@
                 { name: 'viruses', class: 'fa-solid fa-viruses', type: 'solid' },
                 { name: 'bacteria', class: 'fa-solid fa-bacteria', type: 'solid' },
                 { name: 'lungs', class: 'fa-solid fa-lungs', type: 'solid' },
-                { name: 'heartbeat', class: 'fa-solid fa-heartbeat', type: 'solid' }, // Duplicate
                 { name: 'x-ray', class: 'fa-solid fa-x-ray', type: 'solid' },
-                { name: 'prescription-bottle-alt', class: 'fa-solid fa-prescription-bottle-alt', type: 'solid' }, // Alias
+                { name: 'prescription-bottle-alt', class: 'fa-solid fa-prescription-bottle-alt', type: 'solid' },
                 { name: 'file-medical', class: 'fa-solid fa-file-medical', type: 'solid' },
                 { name: 'book-medical', class: 'fa-solid fa-book-medical', type: 'solid' },
                 { name: 'clinic-medical', class: 'fa-solid fa-clinic-medical', type: 'solid' },
                 { name: 'hand-holding-medical', class: 'fa-solid fa-hand-holding-medical', type: 'solid' },
                 { name: 'diagnoses', class: 'fa-solid fa-diagnoses', type: 'solid' },
-                { name: 'brain', class: 'fa-solid fa-brain', type: 'solid' }, // Duplicate
                 { name: 'radiation', class: 'fa-solid fa-radiation', type: 'solid' },
-                { name: 'radiation-alt', class: 'fa-solid fa-radiation-alt', type: 'solid' }, // Alias
+                { name: 'radiation-alt', class: 'fa-solid fa-radiation-alt', type: 'solid' },
                 { name: 'toilet', class: 'fa-solid fa-toilet', type: 'solid' },
                 { name: 'bath', class: 'fa-solid fa-bath', type: 'solid' },
                 { name: 'shower', class: 'fa-solid fa-shower', type: 'solid' },
@@ -605,7 +681,6 @@
                 { name: 'soap', class: 'fa-solid fa-soap', type: 'solid' },
                 { name: 'lungs-virus', class: 'fa-solid fa-lungs-virus', type: 'solid' },
                 { name: 'hand-washing', class: 'fa-solid fa-hand-washing', type: 'solid' },
-                { name: 'hand-sparkles', class: 'fa-solid fa-hand-sparkles', type: 'solid' }, // Duplicate
                 { name: 'globe-americas', class: 'fa-solid fa-globe-americas', type: 'solid' },
                 { name: 'globe-asia', class: 'fa-solid fa-globe-asia', type: 'solid' },
                 { name: 'globe-europe', class: 'fa-solid fa-globe-europe', type: 'solid' },
@@ -621,7 +696,7 @@
                 { name: 'boxes-stacked', class: 'fa-solid fa-boxes-stacked', type: 'solid' },
                 { name: 'pallet', class: 'fa-solid fa-pallet', type: 'solid' },
                 { name: 'dolly', class: 'fa-solid fa-dolly', type: 'solid' },
-                { name: 'container-storage', class: 'fa-solid fa-container-storage', type: 'solid' }, // New in FA6
+                { name: 'container-storage', class: 'fa-solid fa-container-storage', type: 'solid' },
                 { name: 'trailer', class: 'fa-solid fa-trailer', type: 'solid' },
                 { name: 'road-barrier', class: 'fa-solid fa-road-barrier', type: 'solid' },
                 { name: 'gas-pump-slash', class: 'fa-solid fa-gas-pump-slash', type: 'solid' },
@@ -632,9 +707,9 @@
                 { name: 'toilet-paper', class: 'fa-solid fa-toilet-paper', type: 'solid' },
                 { name: 'faucet-drip', class: 'fa-solid fa-faucet-drip', type: 'solid' },
                 { name: 'hand-holding-droplet', class: 'fa-solid fa-hand-holding-droplet', type: 'solid' },
-                { name: 'tint', class: 'fa-solid fa-tint', type: 'solid' }, // Alias for droplet
+                { name: 'tint', class: 'fa-solid fa-tint', type: 'solid' },
                 { name: 'droplet', class: 'fa-solid fa-droplet', type: 'solid' },
-                { name: 'fire-alt', class: 'fa-solid fa-fire-alt', type: 'solid' }, // Alias
+                { name: 'fire-alt', class: 'fa-solid fa-fire-alt', type: 'solid' },
                 { name: 'fire-extinguisher', class: 'fa-solid fa-fire-extinguisher', type: 'solid' },
                 { name: 'wind', class: 'fa-solid fa-wind', type: 'solid' },
                 { name: 'smog', class: 'fa-solid fa-smog', type: 'solid' },
@@ -660,9 +735,6 @@
                 { name: 'suitcase-rolling', class: 'fa-solid fa-suitcase-rolling', type: 'solid' },
                 { name: 'bed', class: 'fa-solid fa-bed', type: 'solid' },
                 { name: 'hotel', class: 'fa-solid fa-hotel', type: 'solid' },
-                { name: 'route', class: 'fa-solid fa-route', type: 'solid' }, // Duplicate
-                { name: 'map-marked-alt', class: 'fa-solid fa-map-marked-alt', type: 'solid' }, // Alias
-                { name: 'gas-pump', class: 'fa-solid fa-gas-pump', type: 'solid' }, // Duplicate
                 { name: 'calendar-check', class: 'fa-solid fa-calendar-check', type: 'solid' },
                 { name: 'calendar-xmark', class: 'fa-solid fa-calendar-xmark', type: 'solid' },
                 { name: 'calendar-plus', class: 'fa-solid fa-calendar-plus', type: 'solid' },
@@ -696,16 +768,14 @@
                 { name: 'battery-quarter', class: 'fa-solid fa-battery-quarter', type: 'solid' },
                 { name: 'battery-three-quarters', class: 'fa-solid fa-battery-three-quarters', type: 'solid' },
                 { name: 'charging-station', class: 'fa-solid fa-charging-station', type: 'solid' },
-                { name: 'bolt', class: 'fa-solid fa-bolt', type: 'solid' }, // Duplicate
                 { name: 'splotch', class: 'fa-solid fa-splotch', type: 'solid' },
-                { name: 'brush-alt', class: 'fa-solid fa-brush-alt', type: 'solid' }, // Alias
+                { name: 'brush-alt', class: 'fa-solid fa-brush-alt', type: 'solid' },
                 { name: 'ruler-combined', class: 'fa-solid fa-ruler-combined', type: 'solid' },
-                { name: 'cut', class: 'fa-solid fa-cut', type: 'solid' }, // Duplicate
                 { name: 'eraser', class: 'fa-solid fa-eraser', type: 'solid' },
                 { name: 'pen', class: 'fa-solid fa-pen', type: 'solid' },
                 { name: 'pen-square', class: 'fa-solid fa-pen-square', type: 'solid' },
-                { name: 'pencil-alt', class: 'fa-solid fa-pencil-alt', type: 'solid' }, // Alias
-                { name: 'comment-alt', class: 'fa-solid fa-comment-alt', type: 'solid' }, // Alias
+                { name: 'pencil-alt', class: 'fa-solid fa-pencil-alt', type: 'solid' },
+                { name: 'comment-alt', class: 'fa-solid fa-comment-alt', type: 'solid' },
                 { name: 'comment-dots', class: 'fa-solid fa-comment-dots', type: 'solid' },
                 { name: 'comment-slash', class: 'fa-solid fa-comment-slash', type: 'solid' },
                 { name: 'paper-plane', class: 'fa-solid fa-paper-plane', type: 'solid' },
@@ -713,18 +783,9 @@
                 { name: 'retweet', class: 'fa-solid fa-retweet', type: 'solid' },
                 { name: 'inbox', class: 'fa-solid fa-inbox', type: 'solid' },
                 { name: 'box-archive', class: 'fa-solid fa-box-archive', type: 'solid' },
-                { name: 'barcode', class: 'fa-solid fa-barcode', type: 'solid' }, // Duplicate
-                { name: 'qrcode', class: 'fa-solid fa-qrcode', type: 'solid' }, // Duplicate
                 { name: 'sticky-note', class: 'fa-solid fa-sticky-note', type: 'solid' },
-                { name: 'clipboard', class: 'fa-solid fa-clipboard', type: 'solid' }, // Duplicate
-                { name: 'paste', class: 'fa-solid fa-paste', type: 'solid' }, // Duplicate
                 { name: 'file-invoice', class: 'fa-solid fa-file-invoice', type: 'solid' },
                 { name: 'file-invoice-dollar', class: 'fa-solid fa-file-invoice-dollar', type: 'solid' },
-                { name: 'piggy-bank', class: 'fa-solid fa-piggy-bank', type: 'solid' }, // Duplicate
-                { name: 'hand-holding-usd', class: 'fa-solid fa-hand-holding-usd', type: 'solid' }, // Alias for dollar
-                { name: 'chart-area', class: 'fa-solid fa-chart-area', type: 'solid' }, // Duplicate
-                { name: 'chart-bar', class: 'fa-solid fa-chart-bar', type: 'solid' }, // Duplicate
-                { name: 'chart-pie', class: 'fa-solid fa-chart-pie', type: 'solid' }, // Duplicate
                 { name: 'users-cog', class: 'fa-solid fa-users-cog', type: 'solid' },
                 { name: 'user-secret', class: 'fa-solid fa-user-secret', type: 'solid' },
                 { name: 'user-astronaut', class: 'fa-solid fa-user-astronaut', type: 'solid' },
@@ -743,21 +804,17 @@
                 { name: 'virus-slash', class: 'fa-solid fa-virus-slash', type: 'solid' },
                 { name: 'disease', class: 'fa-solid fa-disease', type: 'solid' },
                 { name: 'head-side-cough', class: 'fa-solid fa-head-side-cough', type: 'solid' },
-                { name: 'temperature-full', class: 'fa-solid fa-temperature-full', type: 'solid' }, // Alias for high
-                { name: 'temperature-empty', class: 'fa-solid fa-temperature-empty', type: 'solid' }, // Alias for low
+                { name: 'temperature-full', class: 'fa-solid fa-temperature-full', type: 'solid' },
+                { name: 'temperature-empty', class: 'fa-solid fa-temperature-empty', type: 'solid' },
                 { name: 'thermometer', class: 'fa-solid fa-thermometer', type: 'solid' },
                 { name: 'weight-hanging', class: 'fa-solid fa-weight-hanging', type: 'solid' },
                 { name: 'weight-scale', class: 'fa-solid fa-weight-scale', type: 'solid' },
                 { name: 'ruler-vertical', class: 'fa-solid fa-ruler-vertical', type: 'solid' },
                 { name: 'ruler-horizontal', class: 'fa-solid fa-ruler-horizontal', type: 'solid' },
                 { name: 'compass-drafting', class: 'fa-solid fa-compass-drafting', type: 'solid' },
-                { name: 'pen-nib', class: 'fa-solid fa-pen-nib', type: 'solid' }, // Duplicate
-                { name: 'pencil-ruler', class: 'fa-solid fa-pencil-ruler', type: 'solid' }, // Duplicate
                 { name: 'fill', class: 'fa-solid fa-fill', type: 'solid' },
                 { name: 'droplet-slash', class: 'fa-solid fa-droplet-slash', type: 'solid' },
-                { name: 'tint-slash', class: 'fa-solid fa-tint-slash', type: 'solid' }, // Alias
-                { name: 'cloud-sun-rain', class: 'fa-solid fa-cloud-sun-rain', type: 'solid' }, // Duplicate
-                { name: 'cloud-showers-heavy', class: 'fa-solid fa-cloud-showers-heavy', type: 'solid' }, // Duplicate
+                { name: 'tint-slash', class: 'fa-solid fa-tint-slash', type: 'solid' },
                 { name: 'meteor', class: 'fa-solid fa-meteor', type: 'solid' },
                 { name: 'icicles', class: 'fa-solid fa-icicles', type: 'solid' },
                 { name: 'person-drowning', class: 'fa-solid fa-person-drowning', type: 'solid' },
@@ -769,24 +826,19 @@
                 { name: 'cheese', class: 'fa-solid fa-cheese', type: 'solid' },
                 { name: 'bacon', class: 'fa-solid fa-bacon', type: 'solid' },
                 { name: 'hotdog', class: 'fa-solid fa-hotdog', type: 'solid' },
-                { name: 'pizza-slice', class: 'fa-solid fa-pizza-slice', type: 'solid' }, // Duplicate
                 { name: 'drumstick-bite', class: 'fa-solid fa-drumstick-bite', type: 'solid' },
                 { name: 'mug-hot', class: 'fa-solid fa-mug-hot', type: 'solid' },
                 { name: 'blender', class: 'fa-solid fa-blender', type: 'solid' },
                 { name: 'mortar-pestle', class: 'fa-solid fa-mortar-pestle', type: 'solid' },
                 { name: 'grill', class: 'fa-solid fa-grill', type: 'solid' },
                 { name: 'shrimp', class: 'fa-solid fa-shrimp', type: 'solid' },
-                { name: 'apple-alt', class: 'fa-solid fa-apple-alt', type: 'solid' }, // Alias
+                { name: 'apple-alt', class: 'fa-solid fa-apple-alt', type: 'solid' },
                 { name: 'lemon', class: 'fa-solid fa-lemon', type: 'solid' },
                 { name: 'pepper-hot', class: 'fa-solid fa-pepper-hot', type: 'solid' },
-                { name: 'seedling', class: 'fa-solid fa-seedling', type: 'solid' }, // Duplicate
                 { name: 'tractor', class: 'fa-solid fa-tractor', type: 'solid' },
                 { name: 'cow', class: 'fa-solid fa-cow', type: 'solid' },
                 { name: 'horse', class: 'fa-solid fa-horse', type: 'solid' },
                 { name: 'frog', class: 'fa-solid fa-frog', type: 'solid' },
-                { name: 'spider', class: 'fa-solid fa-spider', type: 'solid' }, // Duplicate
-                { name: 'bug', class: 'fa-solid fa-bug', type: 'solid' }, // Duplicate
-                { name: 'robot', class: 'fa-solid fa-robot', type: 'solid' }, // Duplicate
                 { name: 'dragon', class: 'fa-solid fa-dragon', type: 'solid' },
                 { name: 'ghost', class: 'fa-solid fa-ghost', type: 'solid' },
                 { name: 'skull', class: 'fa-solid fa-skull', type: 'solid' },
@@ -794,19 +846,13 @@
                 { name: 'toilet-paper-slash', class: 'fa-solid fa-toilet-paper-slash', type: 'solid' },
                 { name: 'faucet-slash', class: 'fa-solid fa-faucet-slash', type: 'solid' },
                 { name: 'pump-medical', class: 'fa-solid fa-pump-medical', type: 'solid' },
-                { name: 'syringe', class: 'fa-solid fa-syringe', type: 'solid' }, // Duplicate
-                { name: 'pills', class: 'fa-solid fa-pills', type: 'solid' }, // Duplicate
                 { name: 'capsules', class: 'fa-solid fa-capsules', type: 'solid' },
                 { name: 'prescription', class: 'fa-solid fa-prescription', type: 'solid' },
                 { name: 'notes-medical', class: 'fa-solid fa-notes-medical', type: 'solid' },
                 { name: 'file-prescription', class: 'fa-solid fa-file-prescription', type: 'solid' },
                 { name: 'user-md', class: 'fa-solid fa-user-md', type: 'solid' },
-                { name: 'tooth-alt', class: 'fa-solid fa-tooth-alt', type: 'solid' }, // Alias
-                { name: 'x-ray', class: 'fa-solid fa-x-ray', type: 'solid' }, // Duplicate
-                { name: 'microscope', class: 'fa-solid fa-microscope', type: 'solid' }, // Duplicate
+                { name: 'tooth-alt', class: 'fa-solid fa-tooth-alt', type: 'solid' },
                 { name: 'flask-vial', class: 'fa-solid fa-flask-vial', type: 'solid' },
-                { name: 'dna', class: 'fa-solid fa-dna', type: 'solid' }, // Duplicate
-                { name: 'atom', class: 'fa-solid fa-atom', type: 'solid' }, // Duplicate
                 { name: 'hand-holding-heart', class: 'fa-solid fa-hand-holding-heart', type: 'solid' },
                 { name: 'ribbon', class: 'fa-solid fa-ribbon', type: 'solid' },
                 { name: 'dove', class: 'fa-solid fa-dove', type: 'solid' },
@@ -842,85 +888,18 @@
                 { name: 'font-awesome-alt', class: 'fa-brands fa-font-awesome-alt', type: 'brand' },
                 { name: 'font-awesome-flag', class: 'fa-brands fa-font-awesome-flag', type: 'brand' },
                 { name: 'font-awesome-logo-full', class: 'fa-brands fa-font-awesome-logo-full', type: 'brand' },
-                { name: 'less', class: 'fa-brands fa-less', type: 'brand' }, // Duplicate
-                { name: 'sass', class: 'fa-brands fa-sass', type: 'brand' }, // Duplicate
-                { name: 'js', class: 'fa-brands fa-js', type: 'brand' }, // Duplicate
-                { name: 'node-js', class: 'fa-brands fa-node-js', type: 'brand' }, // Duplicate
-                { name: 'react', class: 'fa-brands fa-react', type: 'brand' }, // Duplicate
-                { name: 'angular', class: 'fa-brands fa-angular', type: 'brand' }, // Duplicate
-                { name: 'vuejs', class: 'fa-brands fa-vuejs', type: 'brand' }, // Duplicate
-                { name: 'php', class: 'fa-brands fa-php', type: 'brand' }, // Duplicate
-                { name: 'python', class: 'fa-brands fa-python', type: 'brand' }, // Duplicate
-                { name: 'java', class: 'fa-brands fa-java', type: 'brand' }, // Duplicate
-                { name: 'wordpress', class: 'fa-brands fa-wordpress', type: 'brand' }, // Duplicate
-                { name: 'joomla', class: 'fa-brands fa-joomla', type: 'brand' }, // Duplicate
-                { name: 'drupal', class: 'fa-brands fa-drupal', type: 'brand' }, // Duplicate
-                { name: 'magento', class: 'fa-brands fa-magento', type: 'brand' }, // Duplicate
-                { name: 'shopify', class: 'fa-brands fa-shopify', type: 'brand' }, // Duplicate
-                { name: 'slack', class: 'fa-brands fa-slack', type: 'brand' }, // Duplicate
-                { name: 'discord', class: 'fa-brands fa-discord', type: 'brand' }, // Duplicate
-                { name: 'github', class: 'fa-brands fa-github', type: 'brand' }, // Duplicate
-                { name: 'gitlab', class: 'fa-brands fa-gitlab', type: 'brand' }, // Duplicate
-                { name: 'bitbucket', class: 'fa-brands fa-bitbucket', type: 'brand' }, // Duplicate
-                { name: 'aws', class: 'fa-brands fa-aws', type: 'brand' }, // Duplicate
-                { name: 'azure', class: 'fa-brands fa-azure', type: 'brand' }, // Duplicate
-                { name: 'docker', class: 'fa-brands fa-docker', type: 'brand' }, // Duplicate
-                { name: 'linux', class: 'fa-brands fa-linux', type: 'brand' }, // Duplicate
-                { name: 'ubuntu', class: 'fa-brands fa-ubuntu', type: 'brand' }, // Duplicate
-                { name: 'android', class: 'fa-brands fa-android', type: 'brand' }, // Duplicate
-                { name: 'apple', class: 'fa-brands fa-apple', type: 'brand' }, // Duplicate
-                { name: 'windows', class: 'fa-brands fa-windows', type: 'brand' }, // Duplicate
-                { name: 'google', class: 'fa-brands fa-google', type: 'brand' }, // Duplicate
-                { name: 'chrome', class: 'fa-brands fa-chrome', type: 'brand' }, // Duplicate
-                { name: 'firefox', class: 'fa-brands fa-firefox', type: 'brand' }, // Duplicate
-                { name: 'edge', class: 'fa-brands fa-edge', type: 'brand' }, // Duplicate
-                { name: 'opera', class: 'fa-brands fa-opera', type: 'brand' }, // Duplicate
-                { name: 'safari', class: 'fa-brands fa-safari', type: 'brand' }, // Duplicate
-                { name: 'paypal', class: 'fa-brands fa-paypal', type: 'brand' }, // Duplicate
-                { name: 'stripe', class: 'fa-brands fa-stripe', type: 'brand' }, // Duplicate
-                { name: 'cc-visa', class: 'fa-brands fa-cc-visa', type: 'brand' }, // Duplicate
-                { name: 'cc-mastercard', class: 'fa-brands fa-cc-mastercard', type: 'brand' }, // Duplicate
-                { name: 'amazon-pay', class: 'fa-brands fa-amazon-pay', type: 'brand' }, // Duplicate
-                { name: 'apple-pay', class: 'fa-brands fa-apple-pay', type: 'brand' }, // Duplicate
-                { name: 'google-pay', class: 'fa-brands fa-google-pay', type: 'brand' }, // Duplicate
-                { name: 'spotify', class: 'fa-brands fa-spotify', type: 'brand' }, // Duplicate
-                { name: 'youtube', class: 'fa-brands fa-youtube', type: 'brand' }, // Duplicate
-                { name: 'vimeo', class: 'fa-brands fa-vimeo', type: 'brand' }, // Duplicate
-                { name: 'twitch', class: 'fa-brands fa-twitch', type: 'brand' }, // Duplicate
-                { name: 'soundcloud', class: 'fa-brands fa-soundcloud', type: 'brand' }, // Duplicate
-                { name: 'itunes', class: 'fa-brands fa-itunes', type: 'brand' }, // Duplicate
-                { name: 'google-play', class: 'fa-brands fa-google-play', type: 'brand' }, // Duplicate
-                { name: 'app-store', class: 'fa-brands fa-app-store', type: 'brand' }, // Duplicate
-                { name: 'steam', class: 'fa-brands fa-steam', type: 'brand' }, // Duplicate
-                { name: 'xbox', class: 'fa-brands fa-xbox', type: 'brand' }, // Duplicate
-                { name: 'playstation', class: 'fa-brands fa-playstation', type: 'brand' }, // Duplicate
-                { name: 'nintendo-switch', class: 'fa-brands fa-nintendo-switch', type: 'brand' }, // Duplicate
-                { name: 'facebook-f', class: 'fa-brands fa-facebook-f', type: 'brand' }, // Duplicate
-                { name: 'x-twitter', class: 'fa-brands fa-x-twitter', type: 'brand' }, // Duplicate
-                { name: 'instagram', class: 'fa-brands fa-instagram', type: 'brand' }, // Duplicate
-                { name: 'linkedin-in', class: 'fa-brands fa-linkedin-in', type: 'brand' }, // Duplicate
-                { name: 'pinterest', class: 'fa-brands fa-pinterest', type: 'brand' }, // Duplicate
-                { name: 'snapchat-ghost', class: 'fa-brands fa-snapchat-ghost', type: 'brand' }, // Duplicate
-                { name: 'tiktok', class: 'fa-brands fa-tiktok', type: 'brand' }, // Duplicate
-                { name: 'whatsapp', class: 'fa-brands fa-whatsapp', type: 'brand' }, // Duplicate
-                { name: 'reddit', class: 'fa-brands fa-reddit', type: 'brand' }, // Duplicate
                 { name: 'quora', class: 'fa-brands fa-quora', type: 'brand' },
                 { name: 'weibo', class: 'fa-brands fa-weibo', type: 'brand' },
                 { name: 'weixin', class: 'fa-brands fa-weixin', type: 'brand' },
                 { name: 'qq', class: 'fa-brands fa-qq', type: 'brand' },
-                { name: 'wechat', class: 'fa-brands fa-weixin', type: 'brand' }, // Alias
-                { name: 'discord-alt', class: 'fa-brands fa-discord', type: 'brand' }, // Alias
                 { name: 'line', class: 'fa-brands fa-line', type: 'brand' },
                 { name: 'telegram', class: 'fa-brands fa-telegram', type: 'brand' },
                 { name: 'skype', class: 'fa-brands fa-skype', type: 'brand' },
-                { name: 'viber', class: 'fa-brands fa-viber', type: 'brand' }, // Duplicate
                 { name: 'tumblr-square', class: 'fa-brands fa-tumblr-square', type: 'brand' },
                 { name: 'digg', class: 'fa-brands fa-digg', type: 'brand' },
                 { name: 'stumbleupon', class: 'fa-brands fa-stumbleupon', type: 'brand' },
-                { name: 'flickr', class: 'fa-brands fa-flickr', type: 'brand' }, // Duplicate
                 { name: 'behance-square', class: 'fa-brands fa-behance-square', type: 'brand' },
                 { name: 'dribbble-square', class: 'fa-brands fa-dribbble-square', type: 'brand' },
-                { name: 'vimeo-square', class: 'fa-brands fa-vimeo-square', type: 'brand' }, // Duplicate
                 { name: 'youtube-square', class: 'fa-brands fa-youtube-square', type: 'brand' },
                 { name: 'twitter-square', class: 'fa-brands fa-twitter-square', type: 'brand' },
                 { name: 'facebook-square', class: 'fa-brands fa-facebook-square', type: 'brand' },
@@ -930,46 +909,26 @@
                 { name: 'snapchat-square', class: 'fa-brands fa-snapchat-square', type: 'brand' },
                 { name: 'pinterest-square', class: 'fa-brands fa-pinterest-square', type: 'brand' },
                 { name: 'reddit-square', class: 'fa-brands fa-reddit-square', type: 'brand' },
-                { name: 'tumblr-square', class: 'fa-brands fa-tumblr-square', type: 'brand' },
-                { name: 'slideshare', class: 'fa-brands fa-slideshare', type: 'brand' }, // Duplicate
                 { name: 'lastfm-square', class: 'fa-brands fa-lastfm-square', type: 'brand' },
                 { name: 'google-plus', class: 'fa-brands fa-google-plus', type: 'brand' },
                 { name: 'google-plus-square', class: 'fa-brands fa-google-plus-square', type: 'brand' },
-                { name: 'font-awesome-flag', class: 'fa-brands fa-font-awesome-flag', type: 'brand' }, // Duplicate
-                { name: 'font-awesome-logo-full', class: 'fa-brands fa-font-awesome-logo-full', type: 'brand' }, // Duplicate
-                { name: 'free-code-camp', class: 'fa-brands fa-free-code-camp', type: 'brand' }, // Duplicate
-                { name: 'jsfiddle', class: 'fa-brands fa-jsfiddle', type: 'brand' }, // Duplicate
-                { name: 'codepen', class: 'fa-brands fa-codepen', type: 'brand' },
-                { name: 'maxcdn', class: 'fa-brands fa-maxcdn', type: 'brand' }, // Duplicate
-                { name: 'bootstrap', class: 'fa-brands fa-bootstrap', type: 'brand' }, // Duplicate
-                { name: 'gulp', class: 'fa-brands fa-gulp', type: 'brand' }, // Duplicate
-                { name: 'grunt', class: 'fa-brands fa-grunt', type: 'brand' }, // Duplicate
-                { name: 'babel', class: 'fa-brands fa-babel', type: 'brand' }, // Duplicate
-                { name: 'webpack', class: 'fa-brands fa-webpack', type: 'brand' }, // Duplicate
-                { name: 'symfony', class: 'fa-brands fa-symfony', type: 'brand' }, // Duplicate
-                { name: 'laravel', class: 'fa-brands fa-laravel', type: 'brand' }, // Duplicate
-                { name: 'digital-ocean', class: 'fa-brands fa-digital-ocean', type: 'brand' }, // Duplicate
-                { name: 'dropbox', class: 'fa-brands fa-dropbox', type: 'brand' }, // Duplicate
-                { name: 'google-drive', class: 'fa-brands fa-google-drive', type: 'brand' }, // Duplicate
-                { name: 'jira', class: 'fa-brands fa-jira', type: 'brand' }, // Duplicate
-                { name: 'trello', class: 'fa-brands fa-trello', type: 'brand' }, // Duplicate
-                { name: 'confluence', class: 'fa-brands fa-confluence', type: 'brand' }, // Duplicate
-                { name: 'atlassian', class: 'fa-brands fa-atlassian', type: 'brand' }, // Duplicate
-                { name: 'buffer', class: 'fa-brands fa-buffer', type: 'brand' }, // Duplicate
-                { name: 'hotjar', class: 'fa-brands fa-hotjar', type: 'brand' }, // Duplicate
-                { name: 'jenkins', class: 'fa-brands fa-jenkins', type: 'brand' }, // Duplicate
-                { name: 'linode', class: 'fa-brands fa-linode', type: 'brand' }, // Duplicate
-                { name: 'patreon', class: 'fa-brands fa-patreon', type: 'brand' }, // Duplicate
-                { name: 'product-hunt', class: 'fa-brands fa-product-hunt', type: 'brand' }, // Duplicate
-                { name: 'tripadvisor', class: 'fa-brands fa-tripadvisor', type: 'brand' }, // Duplicate
-                { name: 'uber', class: 'fa-brands fa-uber', type: 'brand' }, // Duplicate
-                { name: 'unsplash', class: 'fa-brands fa-unsplash', type: 'brand' }, // Duplicate
-                { name: 'viber', class: 'fa-brands fa-viber', type: 'brand' }, // Duplicate
-                { name: 'vk', class: 'fa-brands fa-vk', type: 'brand' }, // Duplicate
-                { name: 'yandex', class: 'fa-brands fa-yandex', type: 'brand' }, // Duplicate
-                { name: 'yoast', class: 'fa-brands fa-yoast', type: 'brand' }, // Duplicate
-                { name: 'zhihu', class: 'fa-brands fa-zhihu', type: 'brand' }, // Duplicate
+                { name: 'codepen', class: 'fa-brands fa-codepen', type: 'brand' }
             ];
+
+            // Deduplicate and limit to 500 icons
+            const uniqueIconsSet = new Set();
+            const allIcons = [];
+            for (const icon of rawIcons) {
+                // Use the class name as the unique identifier
+                if (!uniqueIconsSet.has(icon.class)) {
+                    uniqueIconsSet.add(icon.class);
+                    allIcons.push(icon);
+                    if (allIcons.length >= 500) {
+                        break; // Stop once 500 unique icons are collected
+                    }
+                }
+            }
+
 
             // Function to display icons
             function displayIcons(iconsToDisplay) {
@@ -989,67 +948,210 @@
                     noResultsMessage.classList.add('hidden');
                     filteredIcons.forEach(icon => {
                         const iconCard = document.createElement('div');
-                        iconCard.className = 'flex flex-col items-center p-4 bg-white rounded-lg shadow-md w-32 h-44 justify-between hover:bg-gray-50 hover:shadow-lg transition-all duration-200';
+                        iconCard.className = 'flex flex-col items-center p-4 bg-white rounded-lg shadow-md w-36 h-48 justify-between hover:bg-gray-50 hover:shadow-lg transition-all duration-200';
                         // Determine a default color based on brand or a general color if not a brand icon for consistency
                         const iconColorClass = icon.type === 'brand' ? 'text-gray-800' : 'text-indigo-600';
 
                         iconCard.innerHTML = `
-                            <i class="${icon.class} fa-3x ${iconColorClass} mb-2"></i>
+                            <i class="${icon.class} fa-3x ${iconColorClass} mb-2" data-original-class="${icon.class}"></i>
                             <p class="text-sm font-medium text-gray-700 text-center mb-2">${icon.name.replace(/-/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
-                            <button class="copy-btn bg-indigo-500 text-white text-xs px-3 py-1 rounded-full hover:bg-indigo-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                                    data-icon-code='<i class="${icon.class}"></i>'>Copy Code</button>
+                            <div class="flex space-x-2">
+                                <button class="edit-btn bg-blue-500 text-white text-xs px-3 py-1 rounded-full hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                        data-icon-class="${icon.class}"
+                                        data-icon-color="${iconColorClass === 'text-gray-800' ? '#1f2937' : '#4f46e5'}">Edit</button>
+                                <button class="copy-btn bg-indigo-500 text-white text-xs px-3 py-1 rounded-full hover:bg-indigo-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-300">Copy</button>
+                            </div>
                         `;
                         searchResultsContainer.appendChild(iconCard);
                     });
-                    addCopyButtonListeners(); // Re-add listeners for new buttons
+                    addEventListeners(); // Re-add listeners for new buttons
                 }
             }
 
             // Function to handle copy button clicks
-            function addCopyButtonListeners() {
-                const copyButtons = searchResultsContainer.querySelectorAll('.copy-btn');
-                copyButtons.forEach(button => {
-                    button.onclick = function() { // Use onclick directly to avoid multiple listeners
-                        const iconCode = this.dataset.iconCode;
-                        const tempTextArea = document.createElement('textarea');
-                        tempTextArea.value = iconCode;
-                        document.body.appendChild(tempTextArea);
-                        tempTextArea.select();
-                        tempTextArea.setSelectionRange(0, 99999); // For mobile devices
+            function copyToClipboard(text) {
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = text;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                tempTextArea.setSelectionRange(0, 99999); // For mobile devices
 
-                        try {
-                            document.execCommand('copy');
-                            const originalText = this.textContent;
-                            this.textContent = 'Copied!';
-                            setTimeout(() => {
-                                this.textContent = originalText;
-                            }, 1500);
-                        } catch (err) {
-                            console.error('Oops, unable to copy', err);
-                            // Using a simple alert for demonstration, consider a custom modal in a real app
-                            alert('Could not copy code. Please manually copy: ' + iconCode);
-                        } finally {
-                            document.body.removeChild(tempTextArea);
+                try {
+                    document.execCommand('copy');
+                } catch (err) {
+                    console.error('Oops, unable to copy', err);
+                    // Fallback for when execCommand fails (e.g., security restrictions in some environments)
+                    // In a real app, you'd show a custom message box here.
+                    alert('Could not copy code. Please manually copy: \n\n' + text);
+                } finally {
+                    document.body.removeChild(tempTextArea);
+                }
+            }
+
+            // Function to open the edit modal
+            function openEditModal(iconElement, initialColor) {
+                currentIcon = iconElement; // Store the actual icon element
+                modalIconPreview.innerHTML = ''; // Clear previous preview
+                const clonedIcon = iconElement.cloneNode(true);
+                // Remove existing size classes from clonedIcon if present, and set a base size for modal preview
+                clonedIcon.classList.remove('fa-xs', 'fa-sm', 'fa-lg', 'fa-xl', 'fa-2xl', 'fa-1x', 'fa-2x', 'fa-3x', 'fa-4x', 'fa-5x', 'fa-6x', 'fa-7x', 'fa-8x', 'fa-9x', 'fa-10x');
+                clonedIcon.classList.add('fa-3x'); // Default size for modal preview
+
+                // Remove existing color classes from clonedIcon
+                const currentClasses = Array.from(clonedIcon.classList);
+                currentClasses.forEach(cls => {
+                    if (cls.startsWith('text-')) {
+                        clonedIcon.classList.remove(cls);
+                    }
+                });
+
+                clonedIcon.style.color = initialColor; // Apply initial color
+                modalIconPreview.appendChild(clonedIcon);
+
+                // Set initial values for controls based on current icon state
+                // Get current size (fa-X) from the icon element's class list
+                const currentSizeClass = Array.from(iconElement.classList).find(cls => cls.startsWith('fa-') && cls.includes('x'));
+                iconSizeSelect.value = currentSizeClass || 'fa-3x'; // Default to fa-3x if no size class found
+
+                iconColorInput.value = initialColor;
+
+                editModal.style.display = 'flex'; // Show the modal
+            }
+
+            // Function to update icon preview in modal and the actual icon in grid
+            function updateIconPreviewAndGrid() {
+                if (!currentIcon) return;
+
+                // Update modal preview
+                const selectedSize = iconSizeSelect.value;
+                const selectedColor = iconColorInput.value;
+
+                // Update the icon in the modal preview
+                const previewIcon = modalIconPreview.querySelector('i');
+                if (previewIcon) {
+                    // Remove all existing size classes
+                    Array.from(previewIcon.classList).forEach(cls => {
+                        if (cls.startsWith('fa-') && cls.includes('x')) {
+                            previewIcon.classList.remove(cls);
                         }
+                    });
+                    previewIcon.classList.add(selectedSize); // Add selected size
+                    previewIcon.style.color = selectedColor; // Apply selected color
+                }
+
+                // Update the actual icon in the grid
+                // Remove all existing size and color classes from the grid icon
+                Array.from(currentIcon.classList).forEach(cls => {
+                    if (cls.startsWith('fa-') && cls.includes('x')) {
+                        currentIcon.classList.remove(cls);
+                    }
+                    if (cls.startsWith('text-')) { // Remove Tailwind color classes
+                        currentIcon.classList.remove(cls);
+                    }
+                });
+                currentIcon.classList.add(selectedSize); // Apply new size
+                currentIcon.style.color = selectedColor; // Apply new color as inline style
+
+                // Store the current size and color on the actual icon for next edit session
+                currentIcon.dataset.currentSize = selectedSize;
+                currentIcon.dataset.currentColor = selectedColor;
+            }
+
+            // Event listener for changes in size and color controls within the modal
+            iconSizeSelect.addEventListener('change', updateIconPreviewAndGrid);
+            iconColorInput.addEventListener('input', updateIconPreviewAndGrid); // Use 'input' for real-time update
+
+            // Event listener for Copy Edited Code button in modal
+            copyEditedCodeBtn.addEventListener('click', function() {
+                if (currentIcon) {
+                    const originalClass = currentIcon.dataset.originalClass; // Get original classes like fa-solid fa-home
+                    const selectedSize = iconSizeSelect.value;
+                    const selectedColor = iconColorInput.value;
+
+                    // Construct the new HTML code
+                    let newIconCode = `<i class="${originalClass} ${selectedSize}" style="color: ${selectedColor};"></i>`;
+                    copyToClipboard(newIconCode);
+
+                    // Provide feedback to the user
+                    const originalText = this.textContent;
+                    this.textContent = 'Copied!';
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                    }, 1500);
+                }
+            });
+
+            // Close modal functionality
+            closeModalBtn.addEventListener('click', () => {
+                editModal.style.display = 'none';
+                currentIcon = null; // Clear current icon reference
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target == editModal) {
+                    editModal.style.display = 'none';
+                    currentIcon = null; // Clear current icon reference
+                }
+            });
+
+
+            // Function to add event listeners to dynamically created buttons
+            function addEventListeners() {
+                searchResultsContainer.querySelectorAll('.copy-btn').forEach(button => {
+                    button.onclick = function() {
+                        const iconElement = this.closest('.flex-col').querySelector('i');
+                        const originalClass = iconElement.dataset.originalClass;
+                        const currentSize = iconElement.dataset.currentSize || 'fa-3x'; // Get current size or default
+                        const currentColor = iconElement.dataset.currentColor || iconElement.style.color; // Get current color or inline style
+
+                        let iconCode = `<i class="${originalClass} ${currentSize}"`;
+                        if (currentColor && currentColor !== 'rgba(0, 0, 0, 0)') { // Check if color is set and not transparent black
+                            iconCode += ` style="color: ${currentColor};"`;
+                        }
+                        iconCode += `></i>`;
+
+                        copyToClipboard(iconCode);
+
+                        const originalText = this.textContent;
+                        this.textContent = 'Copied!';
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                        }, 1500);
+                    };
+                });
+
+                searchResultsContainer.querySelectorAll('.edit-btn').forEach(button => {
+                    button.onclick = function() {
+                        const iconElement = this.closest('.flex-col').querySelector('i');
+                        // Initialize custom properties if they don't exist
+                        if (!iconElement.dataset.currentSize) {
+                            iconElement.dataset.currentSize = 'fa-3x'; // Default size
+                        }
+                        if (!iconElement.dataset.currentColor) {
+                            // Derive initial color from Tailwind class or default
+                            const computedStyle = window.getComputedStyle(iconElement);
+                            iconElement.dataset.currentColor = computedStyle.color;
+                        }
+                        openEditModal(iconElement, iconElement.dataset.currentColor);
                     };
                 });
             }
 
             // Event listener for search input
             iconSearchInput.addEventListener('input', function() {
-                displayIcons(allIcons); // Re-render all icons (filtered by currentFilter) based on new search term
+                displayIcons(allIcons);
             });
 
             // Event listeners for filter radios
             filterRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
                     currentFilter = this.value;
-                    displayIcons(allIcons); // Re-render all icons based on new filter
+                    displayIcons(allIcons);
                 });
             });
 
-            // Initial display of some popular icons
-            displayIcons(allIcons); // Display all icons initially, filtered by default 'all'
+            // Initial display of icons
+            displayIcons(allIcons);
         });
     </script>
 </body>
