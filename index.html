@@ -1,93 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Funtimes Media</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-<link rel="stylesheet" href="/static/styles.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
-<script src="/static/script.js"></script>
-<script src="https://kit.fontawesome.com/0ca27f8db1.js" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funtimes Media</title>
+    <script src="https://kit.fontawesome.com/0ca27f8db1.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-black text-white">
 
-<!-- Navbar -->
-<div class="w3-top">
-  <div class="w3-bar w3-red w3-card w3-left-align w3-large">
-    <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
-    <a href="#" class="w3-bar-item w3-button w3-padding-large w3-white">About</a>
-    <a href="https://madebydanny.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Made by Danny UK</a>
-    <a href="theftmremix.html" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">The FTM Remix</a>
-    <a href="https://pimedia.mbdio.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Pi Media Network</a>
-    <a href="https://googlekills.madebydanny.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Google Kills</a>
-    <a href="https://mcirosoftcoffee.madebydanny.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Microsoft Coffee</a>
-    <a href="https://mbdio.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">MBD-IO</a>
-    <a href="https://juda.funtimesmedia.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Juda</a>
-    <a href="https://lamppost.funtimesmedia.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">LampPost</a>
-  </div>
+    <!-- Header & Navigation -->
+    <header class="bg-black sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center p-6">
+            <h1 class="text-3xl font-bold text-red-600">Funtimes Media</h1>
+            <nav class="hidden md:flex space-x-8">
+                <a href="https://threads.com/@funtimesmedia" class="hover:text-red-600 transition-colors duration-300"><i class="fa-brands fa-threads"></i></a>
+                <a href="#about" class="hover:text-red-600 transition-colors duration-300">About</a>
+                <a href="#popular-service" class="hover:text-red-600 transition-colors duration-300">Made by Danny</a>
+                <a href="#contact" class="hover:text-red-600 transition-colors duration-300">Contact</a>
+                <a href="https://mastodon.social/@funtimesmedia" class="hover:text-red-600 transition-colors duration-300"><i class="fa-brands fa-mastodon"></i></a>
+            </nav>
+            <a href="#contact" class="hidden md:block bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition-colors duration-300">Follow Us <i class="fa-brands fa-bluesky"></i></a>
+            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-black">
+            <a href="#about" class="block py-2 px-4 text-sm hover:bg-gray-800">About</a>
+            <a href="#popular-service" class="block py-2 px-4 text-sm hover:bg-gray-800">Made by Danny</a>
+            <a href="#contact" class="block py-2 px-4 text-sm hover:bg-gray-800">Contact</a>
+            <a href="#contact" class="block py-2 px-4 text-sm bg-red-600 text-center m-2 rounded-lg hover:bg-red-700">Follow Us <i class="fa-brands fa-bluesky"></i></a>
+        </div>
+    </header>
 
-  <!-- Navbar on small screens -->
-  <div id="navDemo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large">
-    <a href="#" class="w3-bar-item w3-button w3-padding-large w3-white">About</a>
-    <a href="https://madebydanny.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Made by Danny UK</a>
-    <a href="https://theremix.funtimesmedia.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">The FTM Remix</a>
-    <a href="https://pimedia.mbdio.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Pi Media Network</a>
-    <a href="https://googlekills.madebydanny.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Google Kills</a>
-    <a href="https://mcirosoftcoffee.madebydanny.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Microsoft Coffee</a>
-    <a href="https://mbdio.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">MBD-IO</a>
-    <a href="https://juda.funtimesmedia.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Juda</a>
-    <a href="https://lamppost.funtimesmedia.uk" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">LampPost</a>
-  </div>
-</div>
-<!-- Header -->
-<header class="w3-container w3-red w3-center" style="padding:128px 16px">
-  <h1 class="w3-margin w3-jumbo">Funtimes Media</h1>
-  <p class="w3-xlarge">Fast, Free, Secure & Sustainable</p>
-  <button class="w3-button w3-black w3-padding-large w3-large w3-margin-top"><i class="fa-solid fa-arrow-down fa-bounce"></i></button>
-</header>
+    <!-- Hero Section -->
+    <main>
+        <section class="bg-gray-900 text-center py-20 md:py-32">
+            <div class="container mx-auto px-6">
+                <h2 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4"><i class="fa-solid fa-earth-americas"></i> <span class="text-red-600">Hello World</span> <i class="fa-solid fa-leaf"></i></h2>
+                <p class="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-8">We’re Funtimes Media a Media Company owned by a Teenager, <br>Building websites, products and services for free for planet Earth </p>
+                <a href="#about" class="bg-red-600 text-white py-3 px-8 rounded-lg text-lg hover:bg-red-700 transition-colors duration-300">Learn More</a>
+            </div>
+        </section>
 
-<!-- First Grid -->
-<div class="w3-row-padding w3-padding-64 w3-container">
-  <div class="w3-content">
-    <div class="w3-twothird">
-      <h1>About us</h1>
-      <h5 class="w3-padding-32">Hello World!<br>We are Funtimes Media, a small team of 3 developers in their teens.</h5>
+        <!-- Services Section -->
+        <section id="services" class="py-20">
+            <div class="container mx-auto px-6">
+                <h3 class="text-3xl font-bold text-center mb-12">What We Do</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <div class="bg-gray-800 p-8 rounded-lg transform hover:-translate-y-2 transition-transform duration-300">
+                        <div class="text-red-600 mb-4">
+                            <p><i class="fa-solid fa-code fa-2xl" style="color: #dc2626;"></i></p>
+                        </div>
+                        <h4 class="text-xl font-semibold mb-2">Develop / Code</h4>
+                    </div>
+                    <div class="bg-gray-800 p-8 rounded-lg transform hover:-translate-y-2 transition-transform duration-300">
+                        <div class="text-red-600 mb-4">
+                           <p><i class="fa-solid fa-box fa-2xl" style="color: #dc2626;"></i></p>
+                        </div>
+                        <h4 class="text-xl font-semibold mb-2">Package & Ship</h4>
+                    </div>
+                    <div class="bg-gray-800 p-8 rounded-lg transform hover:-translate-y-2 transition-transform duration-300">
+                        <div class="text-red-600 mb-4">
+                           <p><i class="fa-solid fa-paper-plane fa-2xl" style="color: #dc2626;"></i></p>
+                        </div>
+                        <h4 class="text-xl font-semibold mb-2">Publish to Region Earth</h4>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-      <p class="w3-text-grey">We want to make the internet better, buy making apps, websites and services free.<br>
-    All money we make goes stright to development. Our small media company amins to make apps and websites users will use day-to-day such as Notes app, Weather apps and more!</p>
-    </div>
-  </div>
-</div>
+        <!-- About Us Section -->
+        <section id="about" class="bg-gray-900 py-20">
+            <div class="container mx-auto px-6 flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-8 md:mb-0">
+                    <img src="https://placehold.co/600x400/1a202c/e53e3e?text=Funtimes+Media" alt="About Funtimes Media" class="rounded-lg shadow-lg">
+                </div>
+                <div class="md:w-1/2 md:pl-12">
+                    <h3 class="text-3xl font-bold mb-4">About Funtimes Media</h3>
+                    <p class="text-gray-300 mb-4">Funtimes Media was born from a desire to create unforgettable digital experiences. We believe that every brand has a story to tell, and our mission is to tell it in the most compelling way possible. We're not just a media company; we're your creative partners.</p>
+                    <p class="text-gray-300">Our values are rooted in collaboration, innovation, and a relentless pursuit of excellence. We push boundaries to deliver results that matter.</p>
+                </div>
+            </div>
+        </section>
 
-<!-- Second Grid -->
-<div class="w3-row-padding w3-light-grey w3-padding-64 w3-container">
-  <div class="w3-content">
+        <!-- Popular Service Section -->
+        <section id="popular-service" class="py-20">
+            <div class="container mx-auto px-6 flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 md:pr-12 mb-8 md:mb-0">
+                    <h3 class="text-3xl font-bold mb-4">Our Signature Service: <span class="text-red-600">Made by Danny UK</span></h3>
+                    <p class="text-gray-300 mb-6">The founder and Single developer of Funtimes Media's website. <a href="https://madebydanny.uk" target="_blank" class="text-red-600 hover:text-red-700">Daniel Morrisey's Blog</a></p>
+                    <a href="https://madebydanny.uk" class="bg-red-600 text-white py-3 px-8 rounded-lg text-lg hover:bg-red-700 transition-colors duration-300">Visit Now</a>
+                </div>
+                 <div class="md:w-1/2">
+                    <a href="https://madebydanny.uk" target="_blank" rel="noopener noreferrer">
+                      <img src="https://static.madebydanny.uk/img/Designer.png" alt="https://static.madebydanny.uk/img/Designer.png" class="rounded-lg shadow-lg">
+                    </a>
+                </div>
+            </div>
+        </section>
 
-    <div class="w3-twothird">
-      <h1>Fast, Free, Secure & Sustainable</h1>
-      <h5 class="w3-padding-32">Our goal is not just to make apps free but also good for the planet.</h5>
+        <!-- Contact Section -->
+        <section id="contact" class="bg-gray-900 py-20">
+            <div class="container mx-auto px-6">
+                <h3 class="text-3xl font-bold text-center mb-12">Let's Create Together</h3>
+                <div class="max-w-xl mx-auto">
+                    <form action="#" method="POST" class="space-y-6">
+                        <div>
+                            <label for="name" class="sr-only">Name</label>
+                            <input type="text" name="name" id="name" placeholder="Your Name" class="w-full bg-gray-800 border-2 border-gray-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-red-600">
+                        </div>
+                        <div>
+                            <label for="email" class="sr-only">Email</label>
+                            <input type="email" name="email" id="email" placeholder="Your Email" class="w-full bg-gray-800 border-2 border-gray-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-red-600">
+                        </div>
+                        <div>
+                            <label for="message" class="sr-only">Message</label>
+                            <textarea name="message" id="message" rows="4" placeholder="Your Message" class="w-full bg-gray-800 border-2 border-gray-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-red-600"></textarea>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="bg-red-600 text-white py-3 px-8 rounded-lg text-lg hover:bg-red-700 transition-colors duration-300 w-full">Send Message</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
 
-      <p class="w3-text-grey">Our apps are lightwight and small, making them run on older devives and load fast.<br>
-      All of our apps are free and will be free for life.</p>
-    </div>
-  </div>
-</div>
+    <!-- Footer -->
+    <footer class="bg-black py-8">
+        <div class="container mx-auto px-6 text-center text-gray-400">
+            <p>&copy; 2024 Funtimes Media. All Rights Reserved.</p>
+            <div class="flex justify-center space-x-6 mt-4">
+                <a href="#" class="hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M22.46,6C21.69,6.35 20.86,6.58 20,6.69C20.88,6.16 21.56,5.32 21.88,4.31C21.05,4.81 20.13,5.16 19.16,5.36C18.37,4.5 17.26,4 16,4C13.65,4 11.73,5.92 11.73,8.29C11.73,8.63 11.77,8.96 11.84,9.27C8.28,9.09 5.11,7.38 3,4.79C2.63,5.42 2.42,6.16 2.42,6.94C2.42,8.43 3.17,9.75 4.33,10.5C3.62,10.5 2.96,10.3 2.38,10C2.38,10 2.38,10 2.38,10.03C2.38,12.11 3.86,13.85 5.82,14.24C5.46,14.34 5.08,14.39 4.69,14.39C4.42,14.39 4.15,14.36 3.89,14.31C4.43,16 6,17.26 7.89,17.29C6.43,18.45 4.58,19.13 2.56,19.13C2.22,19.13 1.88,19.11 1.54,19.07C3.44,20.29 5.7,21 8.12,21C16,21 20.33,14.46 20.33,8.79C20.33,8.6 20.33,8.42 20.32,8.23C21.16,7.63 21.88,6.87 22.46,6Z"></path></svg></a>
+                <a href="#" class="hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V19C3,20.11 3.89,21 5,21H19C20.11,21 21,20.11 21,19V5C21,3.89 20.11,3 19,3M13.5,13.5H11V20H8V13.5H6V10.5H8V8.5C8,6.42 9.27,5.25 11.12,5.25C11.95,5.25 12.72,5.39 12.72,5.39V7.94H11.5C10.95,7.94 10.5,8.4 10.5,8.96V10.5H13V13.5H13.5Z"></path></svg></a>
+                <a href="#" class="hover:text-white"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8C2,4.6 4.6,2 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"></path></svg></a>
+            </div>
+        </div>
+    </footer>
 
-<footer-bar></footer-bar>
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
 
-<script>
-// Used to toggle the menu on small screens when clicking on the menu button
-function myFunction() {
-  var x = document.getElementById("navDemo");
-  if (x.className.indexOf("w3-show") == -1) {
-    x.className += " w3-show";
-  } else { 
-    x.className = x.className.replace(" w3-show", "");
-  }
-}
-</script>
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                mobileMenu.classList.add('hidden'); // Close mobile menu on click
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
 
 </body>
 </html>
